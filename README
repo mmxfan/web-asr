@@ -1,0 +1,51 @@
+Project: web-asr
+
+Author: Han Lu <tridlh@gmail.com>
+
+The web-asr is an engineering project intending to implement
+an on-line automatic speech recognition server based on MEAN
+stack.
+
+Version 0.01 Implemented a simple client-server pipeline of
+speech processing using npm packages express and socket.io.
+A user can record a clip of speech in the client web page,
+the data will then be passed to the server and saved in file
+'speech.wav'; After that, a local shell script will calculate
+the file size and send the value back through the server, and
+finally the file size value is visible in the text window of
+the client page.
+
+To set up the environment:
+        $ ./setup.sh
+To start the server:
+        $ node server.js
+To access the client page, input "http://localhost:8081" in the
+browser. click "start recording" button to record speech, click
+"stop recording and play" button to stop, and the speech data
+size will be displayed in the Text window below.
+
+Comments of files:
+server.js       The web server. Just a skeleton with basic data
+                sending/receiving implements.
+index.html      The client page. Just for demo.
+recorder.js, resampler.js, recorderWorker.js
+                The recording functions. Just for demo.
+process.sh      The script calculating file size. Just for demo.
+package.json    The project config.
+README          Comments.
+node_modules/   The npm libraries.
+setup.sh        The script for node.js environment set up.
+
+Features and tests TBD:
+1. Replace the process.sh with kaldi decoding script.
+2. Replace the client page and record supporting files with
+   formal front-end design.
+3. In the demo, speech data is saved as local wav file. In a
+   product website the data should be passed to kaldi script
+   directly in order to support multiple client connections.
+4. Should load the shell into mid tier framework/ram.
+5. Multiple requests testing.
+
+Known issues:
+1. On mobile phone, the client web buttons not work. On PC it
+   works as expected.
