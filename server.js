@@ -3,6 +3,7 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var fs = require('fs');
 var spawn = require('child_process').spawn;
+var cnt = 0;
 
 app.get('/', function(req, res){
     res.sendFile(__dirname + '/index.html');
@@ -26,13 +27,27 @@ app.get('/recorderWorker.js', function(req, res){
 
 //Whenever someone connects this gets executed
 io.on('connection', function(socket){
-    console.log('A user connected');
+    cnt++;
+    console.log('A user connected (totally [' + cnt +'] connected)');
     
     socket.on('wav', function(data){
+        //console.log('server received: ' + data.str);
         fs.writeFile(__dirname + '/speech.wav', data.str, 'binary');
         var child = spawn('bash', [__dirname + '/process.sh']);
         child.stdout.on('data', function(chunk) {
-            var returnedText = chunk.toString();
+            var returnedText = 'server send to client:' + chunk.toString();
+            //console.log(returnedText);
+            socket.emit("decode", {'result': returnedText});
+        });
+        child.on('disconnect', function(code) {
+            console.log('child(' + child.pid + ') disconnected with code ' + code);
+        });
+    });
+    socket.on('cc', function(data){
+        console.log('server received: ' + data.str);
+        var child = spawn(__dirname + '/process.sh', [data.str]);
+        child.stdout.on('data', function(chunk) {
+            var returnedText = 'server send to client:' + chunk.toString();
             //console.log(returnedText);
             socket.emit("decode", {'result': returnedText});
         });
@@ -42,7 +57,8 @@ io.on('connection', function(socket){
     });
     //Whenever someone disconnects this piece of code executed
     socket.on('disconnect', function () {
-        console.log('A user disconnected');
+        cnt--;
+        console.log('A user disconnected (totally [' + cnt +'] connected)');
     });
 });
 

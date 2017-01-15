@@ -23,6 +23,15 @@ To access the client page, input "http://localhost:8081" in the
 browser. click "start recording" button to record speech, click
 "stop recording and play" button to stop, and the speech data
 size will be displayed in the Text window below.
+To simulate multiple clients connecting concurrently, run in
+another terminal:
+        $ node concurrent.js
+you may need to set the system ulimit value beforehead:
+        $ ulimit -n 10000
+The concurrent.js simulates 500 clients in connection, each of
+the clients send current time string to the server in a random
+interval from 5 to 15 seconds. (If speech.wav is existing, the
+clients will send the size of the speech.wav instead)
 
 Comments of files:
 server.js       The web server. Just a skeleton with basic data
@@ -35,6 +44,8 @@ package.json    The project config.
 README          Comments.
 node_modules/   The npm libraries.
 setup.sh        The script for node.js environment set up.
+concurrency.sh  The cient server that simulates multiple clients
+                connecting concurrently
 
 Features and tests TBD:
 1. Replace the process.sh with kaldi decoding script.
@@ -49,3 +60,7 @@ Features and tests TBD:
 Known issues:
 1. On mobile phone, the client web buttons not work. On PC it
    works as expected.
+
+Update Jan/15/2017:
+Add concurrency testing, and edit process.sh accordingly.
+
