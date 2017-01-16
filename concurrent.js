@@ -9,7 +9,7 @@ var nclient = 500;
 for (var socket_n = 0; socket_n < nclient; socket_n++) {
     (function() {
         var j = socket_n;
-        var socket = io.connect('http://192.168.1.101:8081', {'force new connection': true});
+        var socket = io.connect('https://192.168.1.101:8081', {'force new connection': true});
         //socket.my_nick = process.pid.toString() + "_" + j.toString();
         /*
         (function() {

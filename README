@@ -64,3 +64,14 @@ Known issues:
 Update Jan/15/2017:
 Add concurrency testing, and edit process.sh accordingly.
 
+Update Jan/16/2017:
+Add https support.
+generate private key and csr:
+        $ openssl req \
+            -newkey rsa:2048 -nodes -keyout server.key \
+            -out server.csr
+generate private crt:
+        $ openssl req \
+            -key server.key \
+            -new \
+            -x509 -days 365 -out server.crt
