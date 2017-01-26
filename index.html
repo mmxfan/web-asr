@@ -2,7 +2,20 @@
 <!-- Original source: http://codeartists.com/post/36746402258/how-to-record-audio-in-chrome-with-native-html5-apis -->
 <!-- By offline we mean that the entire voice sample is recorded before decoding -->
 <!-- Adapted by Alex Popof for CS 224S at Stanford - June 2014 -->
+<!DOCTYPE html>
 <html>
+  <head>
+    <title>Kaldi-Web test client</title>
+    <meta charset="utf-8">
+<!--     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.1/angular.min.js"></script> -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular-timer/1.3.4/assets/js/angular-timer-bower.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular-timer/1.3.4/assets/js/angular-timer-all.min.js"></script>
+    <!-- <script type="text/javascript" src="moment.js"> </script> -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.1/moment.js"> </script>
+<!--     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/humanize-duration/3.10.0/humanize-duration.js"> </script> -->
+<!--     <script type="text/javascript" src="./bower_components/angular-timer/dist/assets/js/angular-timer-bower.js"></script>
+    <script type="text/javascript" src="./bower_components/angular-timer/dist/assets/js/angular-timer-all.min.js"></script> -->
+  </head>
   <body>
     <div align="center">
     <h1>Welcome to Kaldi Web Client</h1>
@@ -10,28 +23,41 @@
     <script type="text/javascript" src="recorder.js"> </script>
     <script type="text/javascript" src="resampler.js"> </script>
     <script src="/socket.io/socket.io.js"></script>
-      <div> 
+      <div>
+        <div ng-app="timer" hidden="true" id="timer1div">
+        <timer id="timer1" interval="1000" autostart="false">Recorder time:{{hours}} hour{{hoursS}}, {{minutes}} minute{{minutesS}}, {{seconds}} second{{secondsS}}.</timer>
+        </div>
+        <p>User name: <input type="text" name="username" id="username"></p>
         <input id="start" onclick="startRecording()" type="button" value="start recording" />
         <input id="stop" onclick="stopRecording()" type="button" disabled="disabled" value="stop recording and play" />
       </div>
       <h4>Output Text from Kaldi:</h4>
       <div style="width:400px;height:100px;border:2px solid blue;" id="kaldi-output"></div>
+      <h4>Target models in database:</h4>
+      <div style="width:400px;height:100px;border:2px solid blue;" id="target-models"></div>
     </div>
 
     <script>
       // NOTE: This must be changed for your IP
-      var socket = io.connect('192.168.1.101:8081');
+      // var socket = io.connect('192.168.0.10:8081');
+      var socket = io.connect(location.host);
       var output_elem = document.getElementById("kaldi-output");
       socket.on('decode', function (data) {        
         var current = output_elem.innerHTML;
         output_elem.innerHTML = current + data.result;
       });
-      
+      //refresh target models in database.
+      var target_models_elem =  document.getElementById("target-models");
+      socket.on('refreshTarget',function(data){
+          target_models_elem.innerHTML = data;
+          console.log(data);
+      });
+
       var onFail = function(e) {
         console.log('Rejected!', e);
       };
 
-      var context = new webkitAudioContext();
+      var context = new AudioContext();
       var onSuccess = function(s) {
         var mediaStreamSource = context.createMediaStreamSource(s);
         recorder = new Recorder(mediaStreamSource);
@@ -54,6 +80,9 @@
           navigator.getUserMedia({audio: true}, onSuccess, onFail);
           document.getElementById("start").disabled = true;
           document.getElementById("stop").disabled = false;
+          //start the timer1
+          document.getElementById("timer1").start();
+          document.getElementById("timer1div").hidden=false;
         } else {
           console.log('navigator.getUserMedia not present');
         }
@@ -62,6 +91,8 @@
       function stopRecording() {
         document.getElementById("start").disabled = false;
         document.getElementById("stop").disabled = true;
+        //stop the timer1
+          document.getElementById("timer1").stop();
         recorder.stop();
         
         recorder.getBuffer(function(s) {
@@ -82,15 +113,22 @@
 
             // convert blob to binary data so can send over socket
             var reader = new FileReader();
+            //pass the user name as the file name to the server
+            var userFileName=document.getElementById("username").value;
+            //clear username field
+            document.getElementById("username").value="";
+            // console.log("filename is " + userFileName);
             reader.onloadend = function () {
             console.log('wav file created...sending to server');        
-            socket.emit('wav',{'str':reader.result});
+            socket.emit('wav',{'str':reader.result, 'filename':userFileName});
             }
             // send binary string to server where it will save wav locally and decode
             reader.readAsBinaryString(s);
             
           }, resampledBuffer);
         });
+        //start refreshing target model in database
+        // socket.emit('getTarget');
       }
     </script>
   </body>
